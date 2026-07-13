@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>StickerMania 🎭 - Loja</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            background: #0f1923;
+            background-image: radial-gradient(ellipse at top, #1a2d3d 0%, #0f1923 70%);
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            color: #e0e0e0;
+            padding-bottom: 60px;
+        }
+        /* ─── HEADER ─── */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 20px;
+            background: rgba(15,25,35,0.95);
+            border-bottom: 1px solid #2a3f55;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+        .header-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .header-logo .icon { font-size: 1.8em; }
+        .header-logo .name {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #f0c040;
+        }
+        .header-user {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .header-user .email {
+            font-size: 0.8em;
+            color: #667788;
+        }
+        .btn-sair {
+            background: none;
+            border: 1px solid #2a3f55;
+            color: #8899aa;
+            padding: 6px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.8em;
+            transition: 0.2s;
+        }
+        .btn-sair:hover { background: #2a3f55; color: white; }
+        /* ─── CONTAINER ─── */
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px 15px;
+        }
+        /* ─── BOAS-VINDAS ─── */
+        .welcome {
+            text-align: center;
+            padding: 20px 0;
+        }
+        .welcome h1 { font-size: 1.8em; margin-bottom: 5px; }
+        .welcome h1 span { color: #f0c040; }
+        .welcome p { color: #667788; font-size: 0.95em; }
+        /* ─── TABS ─── */
+        .tabs {
+            display: flex;
+            gap: 0;
+            margin: 20px 0;
+            background: #1a2d3d;
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid #2a3f55;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 14px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 0.95em;
+            font-weight: 600;
+            border: none;
+            background: transparent;
+            color: #667788;
+            transition: all 0.3s;
+        }
+        .tab-btn.ativo {
+            background: #f0c040;
+            color: #0f1923;
+        }
+        .tab-btn:hover:not(.ativo) { color: #aabbcc; background: rgba(255,255,255,0.05); }
+        .tab-content { display: none; }
+        .tab-content.ativo { display: block; }
+        /* ─── GRADE STICKERS ─── */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        .card {
+            background: #1a2d3d;
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid #2a3f55;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        .card:hover { transform: translateY(-2px); border-color: #f0c040; }
+        .card .gif-box {
+            width: 100%;
+            aspect-ratio: 1;
+            background: #0d1a26;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+        }
+        .card .gif-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+        .card .info {
+            padding: 12px;
+        }
+        .card .info .nome {
+            font-weight: bold;
+            font-size: 0.95em;
+            margin-bottom: 5px;
+        }
+        .card .info .status {
+            font-size: 0.8em;
+            padding: 4px 10px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+        .status-livre { background: #1a3d2a; color: #00e676; }
+        .status-acabando { background: #3d351a; color: #f0c040; }
+        .status-esgotado { background: #3d1a1a; color: #ff5252; }
+        .status-infinito { background: #1a2a3d; color: #4488ff; }
+        .status-disponivel { background: #1a3d2a; color: #00e676; }
+        /* ─── PACOTES ─── */
+        .pacotes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .pacote-card {
+            background: #1a2d3d;
+            border-radius: 14px;
+            padding: 25px;
+            border: 1px solid #2a3f55;
+            text-align: center;
+            transition: 0.3s;
+        }
+        .pacote-card:hover { border-color: #f0c040; transform: translateY(-2px); }
+        .pacote-card .emoji { font-size: 2.5em; margin-bottom: 10px; }
+        .pacote-card .nome-pacote { font-size: 1.2em; font-weight: bold; color: #f0c040; }
+        .pacote-card .desc { color: #8899aa; font-size: 0.85em; margin: 8px 0; min-height: 40px; }
+        .pacote-card .preco {
+            font-size: 2em;
+            font-weight: bold;
+            color: white;
+            margin: 15px 0;
+        }
+        .pacote-card .preco small {
+            font-size: 0.5em;
+            color: #667788;
+        }
+        .btn-comprar {
+            display: inline-block;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #f0c040, #e6a800);
+            color: #0f1923;
+            font-weight: bold;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 0.95em;
+            transition: 0.3s;
+            width: 100%;
+        }
+        .btn-comprar:hover { transform: scale(1.03); }
+        .btn-comprar.premium { background: linear-gradient(135deg, #b388ff, #7c4dff); }
+        .btn-comprar.personalizado { background: linear-gradient(135deg, #ff6e40, #ff3d00); }
+        /* ─── MODAL PIX ─── */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal-overlay.ativo { display: flex; }
+        .modal-box {
+            background: #1a2d3d;
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 400px;
+            width: 100%;
+            border: 1px solid #f0c040;
+            text-align: center;
+        }
+        .modal-box h2 { color: #f0c040; margin-bottom: 10px; }
+        .modal-box .pix-area {
+            background: #0d1a26;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            word-break: break-all;
+            font-size: 0.75em;
+            color: #aabbcc;
+            font-family: monospace;
+        }
+        .btn-copiar {
+            padding: 12px 20px;
+            background: #00e676;
+            color: #0f1923;
+            font-weight: bold;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 0.9em;
+            width: 100%;
+            transition: 0.3s;
+        }
+        .btn-copiar:hover { transform: scale(1.02); }
+        .btn-fechar {
+            margin-top: 10px;
+            background: none;
+            border: 1px solid #2a3f55;
+            color: #667788;
+            padding: 10px;
+            border-radius: 25px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 0.85em;
+        }
+        .modal-box .instrucoes {
+            font-size: 0.85em;
+            color: #8899aa;
+            margin: 10px 0;
+        }
+        .modal-box .valor {
+            font-size: 2em;
+            font-weight: bold;
+            color: white;
+        }
+        /* ─── MEUS DADOS ─── */
+        .resumo {
+            margin: 20px 0;
+            padding: 20px;
+            background: #1a2d3d;
+            border-radius: 14px;
+            border: 1px solid #2a3f55;
+        }
+        .resumo h3 { color: #f0c040; margin-bottom: 15px; }
+        .resumo .stats {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .resumo .stat-item {
+            background: #0d1a26;
+            padding: 12px 18px;
+            border-radius: 10px;
+            text-align: center;
+            flex: 1;
+            min-width: 100px;
+        }
+        .resumo .stat-item .num {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #f0c040;
+        }
+        .resumo .stat-item .label {
+            font-size: 0.75em;
+            color: #8899aa;
+        }
+        /* ─── LOADING ─── */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667788;
+        }
+        .loading::after { content: "⏳"; font-size: 2em; animation: pulse 1s infinite; }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+        /* ─── RESPONSIVO ─── */
+        @media (max-width: 600px) {
+            .grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+            .pacotes-grid { grid-template-columns: 1fr; }
+            .header-logo .name { font-size: 1em; }
+            .header-user .email { display: none; }
+            .welcome h1 { font-size: 1.4em; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-logo">
+            <span class="icon">🎭</span>
+            <span class="name">StickerMania</span>
+        </div>
+        <div class="header-user">
+            <span class="email" id="userEmail">{{ session.email }}</span>
+            <a href="/sair" class="btn-sair">🚪 Sair</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="welcome">
+            <h1>Bem-vindo à <span>StickerMania</span></h1>
+            <p>🎭 Stickers animados exclusivos para você arrasar no chat!</p>
+        </div>
+
+        <!-- RESUMO -->
+        <div class="resumo" id="resumoBox">
+            <h3>📊 Minha Coleção</h3>
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="num" id="totalStickers">0</div>
+                    <div class="label">Stickers</div>
+                </div>
+                <div class="stat-item">
+                    <div class="num" id="compradosCount">0</div>
+                    <div class="label">Comprados 💎</div>
+                </div>
+                <div class="stat-item">
+                    <div class="num" id="usosRestantes">0</div>
+                    <div class="label">Usos grátis restantes</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TABS -->
+        <div class="tabs">
+            <button class="tab-btn ativo" onclick="trocarAba('gratis', this)">🆓 Grátis</button>
+            <button class="tab-btn" onclick="trocarAba('loja', this)">💎 Loja</button>
+        </div>
+
+        <!-- ABA GRÁTIS -->
+        <div class="tab-content ativo" id="tabGratis">
+            <div class="grid" id="gridGratis">
+                <div class="loading"></div>
+            </div>
+        </div>
+
+        <!-- ABA LOJA -->
+        <div class="tab-content" id="tabLoja">
+            <p style="text-align:center;color:#8899aa;margin-bottom:15px;">
+                Escolha seu pacote e tenha stickers <strong style="color:#f0c040;">ILIMITADOS</strong>! 🚀
+            </p>
+            <div class="pacotes-grid" id="gridPacotes">
+                <div class="loading"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PIX -->
+    <div class="modal-overlay" id="modalPix">
+        <div class="modal-box">
+            <h2>💳 Pagamento PIX</h2>
+            <p class="instrucoes" id="modalPacoteNome">Pacote Completo</p>
+            <div class="valor" id="modalValor">R$ 5</div>
+            <div class="pix-area" id="pixCodigo">000201010211...</div>
+            <p class="instrucoes">Copie o código abaixo e pague no app do seu banco:</p>
+            <button class="btn-copiar" onclick="copiarPix()">📋 COPIAR CÓDIGO PIX</button>
+            <p class="instrucoes" style="margin-top:10px;font-size:0.8em;color:#667788;">
+                ✅ Após o pagamento, o sistema libera automático!<br>
+                🔄 Se não liberar em 5 min, chama a Zapia
+            </p>
+            <button class="btn-fechar" onclick="fecharModal()">Fechar</button>
+        </div>
+    </div>
+
+    <script>
+    // ─── DADOS ───
+    const STICKERS = {{ stickers|tojson }};
+    const PACOTES = {{ pacotes|tojson }};
+    const PIX_CODIGO = '00020101021126580014BR.GOV.BCB.PIX013654956a7e-2d21-4c81-9839-2e24c3d6ba625204000053039865802BR5915Lucas Rodrigues6009SAO PAULO62080504daqr6304B6A9';
+    let meusStickers = {};
+
+    // ─── TABS ───
+    function trocarAba(aba, btn) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('ativo'));
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('ativo'));
+        btn.classList.add('ativo');
+        document.getElementById('tab' + aba.charAt(0).toUpperCase() + aba.slice(1)).classList.add('ativo');
+    }
+
+    // ─── CARREGAR STATUS ───
+    async function carregarStatus() {
+        try {
+            const r = await fetch('/api/meus_stickers');
+            const data = await r.json();
+            meusStickers = data.stickers || {};
+            renderizarGratis();
+            renderizarPacotes();
+            renderizarResumo();
+        } catch(e) {
+            document.getElementById('gridGratis').innerHTML = '<p style="color:#ff5252;text-align:center;">Erro ao carregar. Tenta recarregar a página.</p>';
+        }
+    }
+
+    // ─── RENDERIZAR GRÁTIS ───
+    function renderizarGratis() {
+        const grid = document.getElementById('gridGratis');
+        let html = '';
+        let totalUsos = 0;
+
+        STICKERS.forEach(s => {
+            const st = meusStickers[s.id] || null;
+            const comprado = st && st.comprado;
+            const usos = st ? st.usos_restantes : s.gratis;
+
+            if (comprado) {
+                html += `
+                    <div class="card">
+                        <div class="gif-box"><img src="/static/stickers/${s.id}.gif" alt="${s.nome}" onerror="this.parentElement.innerHTML='🎭'"></div>
+                        <div class="info">
+                            <div class="nome">${s.nome}</div>
+                            <span class="status status-infinito">♾️ Ilimitado</span>
+                        </div>
+                    </div>`;
+            } else {
+                totalUsos += usos;
+                let statusClass = 'status-livre';
+                let statusText = `${usos} usos`;
+                if (usos <= 0) { statusClass = 'status-esgotado'; statusText = '❌ Esgotado'; }
+                else if (usos <= 2) { statusClass = 'status-acabando'; statusText = `⚠️ ${usos} usos`; }
+
+                html += `
+                    <div class="card">
+                        <div class="gif-box"><img src="/static/stickers/${s.id}.gif" alt="${s.nome}" onerror="this.parentElement.innerHTML='🎭'"></div>
+                        <div class="info">
+                            <div class="nome">${s.nome}</div>
+                            <span class="status ${statusClass}">${statusText}</span>
+                        </div>
+                    </div>`;
+            }
+        });
+
+        grid.innerHTML = html;
+    }
+
+    // ─── RENDERIZAR PACOTES ───
+    function renderizarPacotes() {
+        const grid = document.getElementById('gridPacotes');
+        const emojis = { 'completo': '📦', 'premium': '👑', 'personalizado': '🎨' };
+        const classes = { 'completo': '', 'premium': 'premium', 'personalizado': 'personalizado' };
+
+        let html = '';
+        for (const [key, p] of Object.entries(PACOTES)) {
+            html += `
+                <div class="pacote-card">
+                    <div class="emoji">${emojis[key] || '🎭'}</div>
+                    <div class="nome-pacote">${p.nome}</div>
+                    <div class="desc">${p.descricao}</div>
+                    <div class="preco">R$ ${p.preco} <small>único</small></div>
+                    <button class="btn-comprar ${classes[key]}" onclick="comprar('${key}')">
+                        🛒 COMPRAR AGORA
+                    </button>
+                </div>`;
+        }
+        grid.innerHTML = html;
+    }
+
+    // ─── RENDERIZAR RESUMO ───
+    function renderizarResumo() {
+        let comprados = 0;
+        let usos = 0;
+        STICKERS.forEach(s => {
+            const st = meusStickers[s.id] || null;
+            if (st && st.comprado) comprados++;
+            else usos += st ? st.usos_restantes : s.gratis;
+        });
+        document.getElementById('totalStickers').textContent = STICKERS.length;
+        document.getElementById('compradosCount').textContent = comprados;
+        document.getElementById('usosRestantes').textContent = usos;
+    }
+
+    // ─── COMPRAR ───
+    async function comprar(pacote) {
+        try {
+            const r = await fetch('/api/comprar/' + pacote, { method: 'POST' });
+            const data = await r.json();
+            if (!data.ok) { alert('Erro: ' + (data.error || 'tente novamente')); return; }
+
+            const nomes = { completo: '📦 Pacote Completo', premium: '👑 Pacote Premium', personalizado: '🎨 Pacote Personalizado' };
+            const precos = { completo: 'R$ 5', premium: 'R$ 7', personalizado: 'R$ 10' };
+
+            document.getElementById('modalPacoteNome').textContent = nomes[pacote] || pacote;
+            document.getElementById('modalValor').textContent = precos[pacote] || 'R$ ' + data.valor;
+            document.getElementById('pixCodigo').textContent = data.pix_codigo;
+            document.getElementById('modalPix').classList.add('ativo');
+        } catch(e) {
+            alert('Erro de conexão. Tenta novamente.');
+        }
+    }
+
+    function fecharModal() {
+        document.getElementById('modalPix').classList.remove('ativo');
+    }
+
+    function copiarPix() {
+        const pix = document.getElementById('pixCodigo').textContent.trim();
+        navigator.clipboard.writeText(pix).then(() => {
+            document.querySelector('.btn-copiar').textContent = '✅ COPIADO!';
+            setTimeout(() => {
+                document.querySelector('.btn-copiar').textContent = '📋 COPIAR CÓDIGO PIX';
+            }, 2000);
+        }).catch(() => {
+            const ta = document.createElement('textarea');
+            ta.value = pix;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            ta.remove();
+            document.querySelector('.btn-copiar').textContent = '✅ COPIADO!';
+            setTimeout(() => {
+                document.querySelector('.btn-copiar').textContent = '📋 COPIAR CÓDIGO PIX';
+            }, 2000);
+        });
+    }
+
+    // ─── INICIAR ───
+    carregarStatus();
+    </script>
+</body>
+</html>
