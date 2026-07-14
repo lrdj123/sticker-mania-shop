@@ -283,6 +283,80 @@ def api_liberar_manual():
     
     return jsonify({'ok': True, 'email': email, 'stickers': len(STICKERS)})
 
+# ─── ADMIN ────────────────────────────────────────────────────
+
+@app.route('/admin')
+def admin():
+    senha = request.args.get('senha', '')
+    if senha != CODIGO_SEGURANCA:
+        return render_template('login.html', erro='🔒 Acesso restrito')
+    
+    conn = get_db()
+    
+    # Estatísticas
+    stats = {}
+    stats['usuarios'] = conn.execute("SELECT COUNT(*) as c FROM usuarios").fetchone()['c']
+    stats['pagamentos'] = conn.execute("SELECT COUNT(*) as c FROM pagamentos").fetchone()['c']
+    stats['pagos'] = conn.execute("SELECT COUNT(*) as c FROM pagamentos WHERE status='pago'").fetchone()['c']
+    stats['pendentes'] = conn.execute("SELECT COUNT(*) as c FROM pagamentos WHERE status='pendente'").fetchone()['c']
+    
+    # Usuários com contagem de stickers
+    usuarios = conn.execute("""
+        SELECT u.*, 
+            (SELECT COUNT(*) FROM sticker_usage su WHERE su.email=u.email) as total_stickers,
+            (SELECT COUNT(*) FROM sticker_usage su WHERE su.email=u.email AND su.comprado=1) as comprados
+        FROM usuarios u ORDER BY u.criado_em DESC
+    """).fetchall()
+    
+    # Pagamentos pendentes
+    pendentes = conn.execute(
+        "SELECT * FROM pagamentos WHERE status='pendente' ORDER BY criado_em DESC"
+    ).fetchall()
+    
+    # Pagamentos confirmados
+    pagos = conn.execute(
+        "SELECT * FROM pagamentos WHERE status='pago' ORDER BY pago_em DESC"
+    ).fetchall()
+    
+    conn.close()
+    
+    return render_template('admin.html', stats=stats, usuarios=usuarios, pendentes=pendentes, pagos=pagos)
+
+@app.route('/api/admin/liberar', methods=['POST'])
+def api_admin_liberar():
+    """Liberação manual pelo painel admin"""
+    data = request.get_json() or {}
+    if data.get('codigo') != CODIGO_SEGURANCA:
+        return jsonify({'error': 'Código inválido'}), 403
+    
+    email = data.get('email', '')
+    pagamento_id = data.get('pagamento_id', '')
+    
+    if not email:
+        return jsonify({'error': 'E-mail obrigatório'}), 400
+    
+    conn = get_db()
+    
+    # Marca pagamento como pago
+    if pagamento_id:
+        conn.execute(
+            "UPDATE pagamentos SET status='pago', pago_em=datetime('now') WHERE id=? AND email=?",
+            (pagamento_id, email)
+        )
+    
+    # Libera todos os stickers
+    for s in STICKERS:
+        conn.execute('''
+            INSERT INTO sticker_usage (email, sticker_id, usos_restantes, comprado)
+            VALUES (?, ?, 0, 1)
+            ON CONFLICT(email, sticker_id) DO UPDATE SET comprado=1
+        ''', (email, s['id']))
+    
+    conn.commit()
+    conn.close()
+    
+    return jsonify({'ok': True, 'email': email, 'stickers': len(STICKERS)})
+
 # ─── ARQUIVOS ESTÁTICOS ──────────────────────────────────────
 
 @app.route('/static/stickers/<path:nome>')
