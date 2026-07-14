@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StickerMania 🛠️ Admin</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            background: #0f1923;
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            color: #e0e0e0;
+            padding: 20px;
+        }
+        .container { max-width: 1000px; margin: 0 auto; }
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 20px; padding-bottom: 15px;
+            border-bottom: 1px solid #2a3f55;
+        }
+        .header h1 { color: #f0c040; font-size: 1.5em; }
+        .header span { color: #667788; font-size: 0.9em; }
+        .card {
+            background: #1a2d3d; border-radius: 12px; padding: 20px;
+            border: 1px solid #2a3f55; margin-bottom: 20px;
+        }
+        .card h2 { color: #f0c040; margin-bottom: 15px; font-size: 1.1em; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9em; }
+        th { text-align: left; color: #667788; padding: 8px; border-bottom: 1px solid #2a3f55; }
+        td { padding: 8px; border-bottom: 1px solid #1a2d3d; }
+        .status-pendente { color: #f0c040; }
+        .status-pago { color: #00e676; }
+        .badge { 
+            display: inline-block; padding: 3px 8px; border-radius: 10px;
+            font-size: 0.8em; background: #0d1a26; color: #aabbcc;
+        }
+        .btn-liberar {
+            padding: 5px 12px; background: #00e676; color: #0f1923;
+            border: none; border-radius: 8px; font-size: 0.85em;
+            cursor: pointer; font-weight: bold;
+        }
+        .btn-liberar:hover { background: #00c853; }
+        .empty { color: #667788; text-align: center; padding: 30px; }
+        .msg { padding: 10px; border-radius: 8px; margin: 10px 0; display: none; }
+        .msg.sucesso { background: #1a3d2a; color: #00e676; display: block; }
+        .msg.erro { background: #3d1a1a; color: #ff5252; display: block; }
+        .stats-row { display: flex; gap: 15px; flex-wrap: wrap; }
+        .stat-box {
+            background: #0d1a26; padding: 15px; border-radius: 10px;
+            text-align: center; flex: 1; min-width: 120px;
+        }
+        .stat-box .num { font-size: 2em; font-weight: bold; color: #f0c040; }
+        .stat-box .label { font-size: 0.8em; color: #667788; }
+        .voltar {
+            display: inline-block; margin-top: 15px; color: #667788;
+            text-decoration: none; font-size: 0.9em;
+        }
+        .voltar:hover { color: #f0c040; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛠️ Painel StickerMania</h1>
+            <span>Admin</span>
+        </div>
+
+        <!-- MENSAGEM -->
+        <div id="mensagem" class="msg"></div>
+
+        <!-- ESTATÍSTICAS -->
+        <div class="card">
+            <h2>📊 Geral</h2>
+            <div class="stats-row">
+                <div class="stat-box">
+                    <div class="num">{{ stats.usuarios }}</div>
+                    <div class="label">Usuários</div>
+                </div>
+                <div class="stat-box">
+                    <div class="num">{{ stats.pagamentos }}</div>
+                    <div class="label">Pagamentos</div>
+                </div>
+                <div class="stat-box">
+                    <div class="num">{{ stats.pagos }}</div>
+                    <div class="label">Pagos ✅</div>
+                </div>
+                <div class="stat-box">
+                    <div class="num">{{ stats.pendentes }}</div>
+                    <div class="label">Pendentes ⏳</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- USUÁRIOS -->
+        <div class="card">
+            <h2>👥 Usuários Cadastrados</h2>
+            {% if usuarios %}
+            <table>
+                <tr><th>E-mail</th><th>Apelido</th><th>Desde</th><th>Stickers</th></tr>
+                {% for u in usuarios %}
+                <tr>
+                    <td>{{ u.email }}</td>
+                    <td>{{ u.apelido }}</td>
+                    <td>{{ u.criado_em[:10] if u.criado_em else '-' }}</td>
+                    <td>
+                        {% if u.total_stickers > 0 %}
+                            <span class="badge">{{ u.comprados }}/{{ u.total_stickers }} 💎</span>
+                        {% else %}
+                            <span class="badge">0/8</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+            {% else %}
+            <div class="empty">Nenhum usuário ainda</div>
+            {% endif %}
+        </div>
+
+        <!-- PAGAMENTOS PENDENTES -->
+        <div class="card">
+            <h2>⏳ Pagamentos Pendentes</h2>
+            {% if pendentes %}
+            <table>
+                <tr><th>ID</th><th>E-mail</th><th>Pacote</th><th>Valor</th><th>Desde</th><th>Ação</th></tr>
+                {% for p in pendentes %}
+                <tr>
+                    <td style="font-family:monospace;font-size:0.85em;">{{ p.id }}</td>
+                    <td>{{ p.email }}</td>
+                    <td>{{ p.pacote }}</td>
+                    <td>R$ {{ "%.0f"|format(p.valor) }}</td>
+                    <td>{{ p.criado_em[:10] if p.criado_em else '-' }}</td>
+                    <td>
+                        <button class="btn-liberar" onclick="liberar('{{ p.email }}', '{{ p.id }}')">
+                            ✅ Liberar
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+            {% else %}
+            <div class="empty">Nenhum pagamento pendente ✅</div>
+            {% endif %}
+        </div>
+
+        <!-- PAGAMENTOS CONFIRMADOS -->
+        <div class="card">
+            <h2>✅ Pagamentos Confirmados</h2>
+            {% if pagos %}
+            <table>
+                <tr><th>ID</th><th>E-mail</th><th>Pacote</th><th>Valor</th><th>Pago em</th></tr>
+                {% for p in pagos %}
+                <tr>
+                    <td style="font-family:monospace;font-size:0.85em;">{{ p.id }}</td>
+                    <td>{{ p.email }}</td>
+                    <td>{{ p.pacote }}</td>
+                    <td>R$ {{ "%.0f"|format(p.valor) }}</td>
+                    <td>{{ p.pago_em[:16] if p.pago_em else '-' }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+            {% else %}
+            <div class="empty">Nenhum pagamento confirmado ainda</div>
+            {% endif %}
+        </div>
+
+        <a href="/loja" class="voltar">⬅ Voltar para loja</a>
+    </div>
+
+    <script>
+    async function liberar(email, pagamentoId) {
+        if (!confirm(`Liberar stickers para ${email}?`)) return;
+        
+        try {
+            const r = await fetch('/api/admin/liberar', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    codigo: 'SM-LUCAS-2026',
+                    email: email,
+                    pagamento_id: pagamentoId
+                })
+            });
+            const data = await r.json();
+            const msg = document.getElementById('mensagem');
+            if (data.ok) {
+                msg.className = 'msg sucesso';
+                msg.textContent = `✅ Stickers liberados para ${email}! Recarregando...`;
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                msg.className = 'msg erro';
+                msg.textContent = '❌ ' + (data.error || 'Erro ao liberar');
+            }
+        } catch(e) {
+            const msg = document.getElementById('mensagem');
+            msg.className = 'msg erro';
+            msg.textContent = '❌ Erro de conexão';
+        }
+    }
+    </script>
+</body>
+</html>
